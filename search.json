@@ -1,0 +1,72 @@
+[
+  {
+    "objectID": "index.html",
+    "href": "index.html",
+    "title": "Frederick County, MD, County Council District Three",
+    "section": "",
+    "text": "Which metrics and analyses will be most helpful?\n\nFor example, when looking at turnout by party and precinct, what is our metric of interest? Vote count or turnout of a certain party? Which parties, how to group, etc.?\n\nPreferences for visualizations (color scales, types of charts, etc.)"
+  },
+  {
+    "objectID": "index.html#what-would-be-helpful",
+    "href": "index.html#what-would-be-helpful",
+    "title": "Frederick County, MD, County Council District Three",
+    "section": "",
+    "text": "Which metrics and analyses will be most helpful?\n\nFor example, when looking at turnout by party and precinct, what is our metric of interest? Vote count or turnout of a certain party? Which parties, how to group, etc.?\n\nPreferences for visualizations (color scales, types of charts, etc.)"
+  },
+  {
+    "objectID": "index.html#introducingfrederick-county-district-three",
+    "href": "index.html#introducingfrederick-county-district-three",
+    "title": "Frederick County, MD, County Council District Three",
+    "section": "Introducing…Frederick County District Three!",
+    "text": "Introducing…Frederick County District Three!\nFor this analysis, initially focused on estimating a vote goal from turnout and voter registration data, we will reference data from the last three gubernatorial elections.\nCounty council district three currently covers the area that has historically (from 2014 to current day) included the following precincts: 002-002, 002-004, 002-005, 002-008, 002-010, 002-013, 021-002, 021-003, 021-005, 021-006, 023-002, 023-003, 023-004, 024-002\nFor more information, see documentation related to 2021 redistricting, which moved the two northernmost precincts in district two’s previous map to district five. Thus, we will exclude these two precincts from our analyses as they are not relevant to the 2026 district two election.\nHowever, we will include data from other precincts that are no longer named in the current map, but historically were within its boundaries (such as _). See maps from 2014 and 2018 elections.\n\n\n`summarise()` has grouped output by 'YEAR'. You can override using the\n`.groups` argument."
+  },
+  {
+    "objectID": "index.html#overall-turnout-by-precinct",
+    "href": "index.html#overall-turnout-by-precinct",
+    "title": "Frederick County, MD, County Council District Three",
+    "section": "Overall Turnout by Precinct",
+    "text": "Overall Turnout by Precinct\nYou can filter to year or precinct by typing values in the boxes at the top of the field. Click the diamond/arrows to order by a field.\nThe colors of the bars within the cells for visualization have no particularly meaning and can be changed easily at request. The size of the bar reflects the magnitude of the cell’s number.\n\n\n\n\n\n\nCan easily add option to export/download data here if desired.\nWould a line chart be another helpful way to view trends at the precinct level over time? Let me know and I can easily add."
+  },
+  {
+    "objectID": "index.html#map-examples",
+    "href": "index.html#map-examples",
+    "title": "Frederick County, MD, County Council District Three",
+    "section": "Map Examples",
+    "text": "Map Examples\n\n2018 Vote Counts by Precinct\nWill add options to toggle between years and metrics of interest (votes, registered voters, turnout, etc.)"
+  },
+  {
+    "objectID": "index.html#who-is-showing-up-to-vote-but-not-voting-in-county-council-district-3",
+    "href": "index.html#who-is-showing-up-to-vote-but-not-voting-in-county-council-district-3",
+    "title": "Frederick County, MD, County Council District Three",
+    "section": "Who is showing up to vote but not voting in county council district 3?",
+    "text": "Who is showing up to vote but not voting in county council district 3?\nQuestion identified by looking at differences between voters who turned out but did not choose a candidate for district 3. Coming back to."
+  },
+  {
+    "objectID": "index.html#party-precinct-analysis",
+    "href": "index.html#party-precinct-analysis",
+    "title": "Frederick County, MD, County Council District Three",
+    "section": "Party / Precinct Analysis",
+    "text": "Party / Precinct Analysis\nComing back to this.\n\n\nReading layer `Election' from data source \n  `C:\\Users\\madis\\OneDrive\\Documents\\district_3_2026\\politicalfeatures\\Election.shp' \n  using driver `ESRI Shapefile'\nSimple feature collection with 74 features and 19 fields\nGeometry type: MULTIPOLYGON\nDimension:     XY\nBounding box:  xmin: 1120580 ymin: 565954.6 xmax: 1282213 ymax: 748181.7\nProjected CRS: NAD83 / Maryland (ftUS)\n\n\nJoining with `by = join_by(PRECINCT)`"
+  },
+  {
+    "objectID": "index.html#turnout-by-party",
+    "href": "index.html#turnout-by-party",
+    "title": "Frederick County, MD, County Council District Three",
+    "section": "Turnout By Party",
+    "text": "Turnout By Party\n\n\n`summarise()` has grouped output by 'YEAR'. You can override using the\n`.groups` argument."
+  },
+  {
+    "objectID": "index.html#calculating-our-vote-goal",
+    "href": "index.html#calculating-our-vote-goal",
+    "title": "Frederick County, MD, County Council District Three",
+    "section": "Calculating Our Vote Goal",
+    "text": "Calculating Our Vote Goal"
+  },
+  {
+    "objectID": "about.html",
+    "href": "about.html",
+    "title": "About",
+    "section": "",
+    "text": "About this site\n\n\n[1] 2"
+  }
+]
