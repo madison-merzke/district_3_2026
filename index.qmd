@@ -1,0 +1,342 @@
+---
+title: "Frederick County, MD, County Council District Three"
+---
+
+## What would be helpful?
+
+-   Which metrics and analyses will be most helpful?
+
+    -   For example, when looking at turnout by party and precinct, what is our metric of interest? Vote count or turnout of a certain party? Which parties, how to group, etc.?
+
+-   Preferences for visualizations (color scales, types of charts, etc.)
+
+```{r packages}
+#| include: false
+library(tidyverse)
+library(DT)
+library(sf)
+library(leaflet) 
+library(plotly)
+library(glue)
+
+d3_precincts <- c(
+  "002-002",
+  "002-004",
+  "002-005",
+  "002-008",
+  "002-010",
+  "002-013",
+  "021-002",
+  "021-003",
+  "021-005",
+  "021-006",
+  "023-002",
+  "023-003",
+  "023-004",
+  "024-002"
+    )
+
+# Perfect — let’s walk through a **step‑by‑step workflow for deploying a Quarto site to Netlify’s free tier**, and then I’ll show you how to add simple password protection so you can keep it semi‑private.
+# 
+# ---
+# 
+# ## 🚀 Step 1: Render Your Quarto Site
+# 1. In your project folder, run:
+#    ```bash
+#    quarto render
+#    ```
+#    This will create a `_site/` directory containing the HTML, CSS, and assets.
+# 
+# ---
+# 
+# ## 🌐 Step 2: Push to GitHub
+# - Commit your Quarto project (including `_site/`) to GitHub.  
+# - Netlify can connect directly to your repo, so you don’t need to manually upload files.
+# 
+# ---
+# 
+# ## 🔗 Step 3: Connect Netlify
+# 1. Go to [Netlify](https://www.netlify.com/) and sign up (free plan is fine).  
+# 2. Click **New Site from Git**.  
+# 3. Choose GitHub and authorize Netlify.  
+# 4. Select your repo.  
+# 5. Set **build command** to:
+#    ```bash
+#    quarto render
+#    ```
+#    and **publish directory** to `_site`.
+# 
+# Netlify will automatically build and deploy your Quarto site whenever you push changes.
+# 
+# ---
+# 
+# ## 🔒 Step 4: Add Password Protection
+# Netlify doesn’t offer built‑in password protection on the free tier, but you can add a simple **Basic Auth gate** using a `_headers` file:
+# 
+# 1. In your Quarto project root, create a file called `_headers`.  
+# 2. Add:
+#    ```
+#    /*
+#      Basic-Auth: username:password
+#    ```
+#    Replace `username:password` with your chosen credentials.  
+# 3. Commit and push.  
+# 4. Netlify will enforce authentication for all pages.
+# 
+# 👉 This is lightweight and works fine for small projects. For more advanced access control (multiple users, OAuth), you’d need Netlify’s paid plan or an external service like Cloudflare Access.
+# 
+# ---
+# 
+# ## ✅ Summary
+# - **Free tier**: Netlify gives you plenty of bandwidth and build minutes for personal projects.  
+# - **Privacy**: Add a `_headers` file with Basic Auth to restrict access.  
+# - **Workflow**: Quarto → GitHub → Netlify → password protection.  
+
+# Why as high as possible before Jan?
+# Stay in contact with state DCC
+# Demographic changes on county website (or FCPS development data)
+
+```
+
+## Introducing...Frederick County District Three!
+
+For this analysis, initially focused on estimating a vote goal from turnout and voter registration data, we will reference data from the last three gubernatorial elections.
+
+County council district three currently covers the area that has historically (from 2014 to current day) included the following precincts: `r d3_precincts`
+
+For more information, see [documentation related to 2021 redistricting](https://frederickcountymd.gov/8182/Redistricting-Commission), which moved the two northernmost precincts in district two's previous map to district five. Thus, we will exclude these two precincts from our analyses as they are not relevant to the 2026 district two election.
+
+However, we will include data from other precincts that are no longer named in the current map, but historically were within its boundaries (such as _). See maps from 2014 and 2018 elections.
+
+```{r read-in}
+read_turnout <- function(path){
+  year <- stringr::str_extract(path, "\\d{4}.csv") %>% str_remove(".csv")
+  
+  read.csv(path) %>%
+    filter(
+    LBE == "Frederick",
+    PRECINCT %in% d3_precincts
+  ) %>%
+  rename(EARLY_VOTING = contains("EARLY_VO")) %>%
+  mutate(YEAR = year,
+         ALL_VOTES = POLLS + EARLY_VOTING + ABSENTEE + PROVISIONAL) 
+}
+
+historic_turnout <- paste0( 
+  rep("turnout_data/", 2),
+  c("Official by Party and Precinct_2022.csv",
+    "Official by Party and Precinct_2018.csv")) %>%
+  map_dfr(read_turnout)
+
+read_turnout <- function(path){
+  year <- stringr::str_extract(path, "\\d{4}.xlsx") %>% str_remove(".xlsx")
+  
+  readxl::read_excel(path) %>%
+    filter(
+    LBE == "Frederick",
+    PRECINCT %in% d3_precincts
+  ) %>%
+  rename(EARLY_VOTING = contains("EARLY_VO")) %>%
+  mutate(YEAR = year,
+         ALL_VOTES = POLLS + EARLY_VOTING + ABSENTEE + PROVISIONAL) 
+}
+
+historic_turnout <- historic_turnout %>%
+  bind_rows(read_turnout("turnout_data/GG14_Turnout_by_party_by_precinct_2014.xlsx")) 
+
+overall_turnout <- historic_turnout %>%
+  group_by(YEAR, PRECINCT) %>%
+  summarise(
+    VOTES = sum(ALL_VOTES),
+    REGISTERED_VOTERS = sum(ELIGIBLE_VOTERS, na.rm = T)) %>%
+  mutate(TURNOUT = VOTES/REGISTERED_VOTERS)
+```
+
+## Overall Turnout by Precinct
+
+You can filter to year or precinct by typing values in the boxes at the top of the field. Click the diamond/arrows to order by a field.
+
+The colors of the bars within the cells for visualization have no particularly meaning and can be changed easily at request. The size of the bar reflects the magnitude of the cell's number.
+
+```{r}
+datatable(overall_turnout, 
+          rownames = F,
+          filter = 'top',
+          caption = "Turnout by Precinct in Last Three Gubernatorial Elections"
+          ) %>% 
+  formatPercentage('TURNOUT', 2) %>%
+  formatStyle(
+    'REGISTERED_VOTERS',
+    background = styleColorBar(overall_turnout$REGISTERED_VOTERS, 'lightblue'),
+    backgroundSize = '100% 90%',
+    backgroundRepeat = 'no-repeat',
+    backgroundPosition = 'center'
+  ) %>%
+    formatStyle(
+    'TURNOUT',
+    background = styleColorBar(overall_turnout$TURNOUT, 'lightyellow'),
+    backgroundSize = '100% 90%',
+    backgroundRepeat = 'no-repeat',
+    backgroundPosition = 'center'
+  ) %>%
+      formatStyle(
+    'VOTES',
+    background = styleColorBar(overall_turnout$VOTES, 'lightgreen'),
+    backgroundSize = '100% 90%',
+    backgroundRepeat = 'no-repeat',
+    backgroundPosition = 'center'
+  )
+```
+
+Can easily add option to export/download data here if desired.
+
+Would a line chart be another helpful way to view trends at the precinct level over time? Let me know and I can easily add.
+
+
+```{r}
+
+# ```{ojs}
+# //| echo: false
+# <!-- viewof metric_choice = Inputs.radio(["VOTES", "REGISTERED_VOTERS", "TURNOUT"], { -->
+# <!--   value: "VOTES", -->
+# <!--   label: "Choose metric:", -->
+# <!-- }) -->
+# ```
+
+# line chart
+# conditionally toggle between three metrics (votes, voters, turnout)
+# with lines for each precinct
+# three points per precinct (for each election)
+# metric_choice <- "VOTES"
+
+# NEED TO TRANSITION INTO SHINY/REACTIVE TO BE ABLE TO TOGGLE; that OR WEBR like other example
+# or, easier to do graph in ojs?
+
+# plot_ly(overall_turnout,
+#         x = ~YEAR, y = overall_turnout[['.ojs-metric_choice']],
+#         type = 'scatter', mode = 'lines+markers', color = ~PRECINCT) %>%
+#   layout(title = glue("Overall Trends in ", ".ojs-metric_choice", " by Precinct")) 
+```
+
+## Map Examples
+
+```{r}
+#| include: false
+precincts <- st_read("politicalfeatures/Election.shp") %>%
+  st_transform(precincts, crs = 4326) %>%
+  mutate(PRECINCT = paste0("0", PRECINCT)) %>%
+  inner_join(overall_turnout %>% filter(YEAR == "2018"))
+```
+
+### 2018 Vote Counts by Precinct
+
+Will add options to toggle between years and metrics of interest (votes, registered voters, turnout, etc.)
+
+```{r}
+leaflet(precincts) %>%
+  addProviderTiles("CartoDB.Positron") %>%   # light, clean background
+  addPolygons(
+    fillColor = ~colorNumeric("Blues", VOTES)(VOTES),
+    fillOpacity = 0.9,
+    color = "black",
+    weight = 0.3,
+    popup = ~paste("Precinct:", PRECINCT, "<br>", "2018 votes:", VOTES)
+  )
+
+# Use combination of react toggle, tabs, etc. to view all years and metrics of interest
+```
+
+## Who is showing up to vote but not voting in county council district 3?
+
+Question identified by looking at differences between voters who turned out but did not choose a candidate for district 3. Coming back to.
+
+## Party / Precinct Analysis
+
+Coming back to this.
+
+```{r}
+# Party/precinct analysis
+party <- historic_turnout %>%
+  select(YEAR, PRECINCT, PARTY, ALL_VOTES, ELIGIBLE_VOTERS) %>%
+  mutate(TURNOUT = ALL_VOTES/ELIGIBLE_VOTERS,
+         PARTY = case_when(PARTY == "DEMOCRATIC" ~ "DEMOCRAT",
+                           T ~ PARTY)) 
+
+# party %>% count(PARTY, sort = T)
+
+party_turnout <- party %>% 
+  select(YEAR, PRECINCT, PARTY, TURNOUT) %>%
+  pivot_wider(names_from = PARTY,
+              values_from = TURNOUT)
+
+party_votes <- party %>% 
+  select(YEAR, PRECINCT, PARTY, ALL_VOTES) %>%
+  pivot_wider(names_from = PARTY,
+              values_from = ALL_VOTES) %>%
+  rowwise() %>%
+  mutate(TOTAL = sum(c_across(3:9), na.rm = T)) %>%
+  mutate(LBL = case_when(DEMOCRAT / TOTAL > 0.6 ~ "blue",
+                         DEMOCRAT / TOTAL > 0.55 ~ "lightblue",
+                         REPUBLICAN / TOTAL > 0.6 ~ "red",
+                         REPUBLICAN / TOTAL > 0.55 ~ "pink",
+                         T ~ "purple"))
+  
+precincts <- st_read("politicalfeatures/Election.shp") %>%
+  st_transform(precincts, crs = 4326) %>%
+  mutate(PRECINCT = paste0("0", PRECINCT)) %>%
+  inner_join(party_turnout %>% filter(YEAR == "2018"))
+
+leaflet(precincts) %>%
+  addProviderTiles("CartoDB.Positron") %>%   # light, clean background
+  addPolygons(
+    fillColor = ~colorNumeric("Blues", DEMOCRAT)(DEMOCRAT),
+    fillOpacity = 0.9,
+    color = "black",
+    weight = 0.3,
+    popup = ~paste("Precinct:", PRECINCT, "<br>", "2018 D turnout:", DEMOCRAT)
+  )
+```
+
+## Turnout By Party
+
+```{r}
+look <- party %>% 
+  group_by(YEAR, PARTY) %>%
+  summarise(VOTES = sum(ALL_VOTES),
+            REGISTERED_VOTERS = sum(ELIGIBLE_VOTERS)) %>%
+  mutate(TURNOUT = VOTES/REGISTERED_VOTERS)
+
+datatable(look, 
+          rownames = F,
+          filter = 'top',
+          caption = "Turnout by Party in Last Three Gubernatorial Elections"
+          ) %>% 
+  formatPercentage('TURNOUT', 2) %>%
+  formatStyle(
+    'REGISTERED_VOTERS',
+    background = styleColorBar(overall_turnout$REGISTERED_VOTERS, 'lightblue'),
+    backgroundSize = '100% 90%',
+    backgroundRepeat = 'no-repeat',
+    backgroundPosition = 'center'
+  ) %>%
+    formatStyle(
+    'TURNOUT',
+    background = styleColorBar(overall_turnout$TURNOUT, 'lightyellow'),
+    backgroundSize = '100% 90%',
+    backgroundRepeat = 'no-repeat',
+    backgroundPosition = 'center'
+  ) %>%
+      formatStyle(
+    'VOTES',
+    background = styleColorBar(overall_turnout$VOTES, 'lightgreen'),
+    backgroundSize = '100% 90%',
+    backgroundRepeat = 'no-repeat',
+    backgroundPosition = 'center'
+  )
+```
+
+## Calculating Our Vote Goal
+
+```{r}
+
+```
