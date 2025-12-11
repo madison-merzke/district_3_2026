@@ -2,7 +2,7 @@ project:
   type: website
 
 website:
-  title: "Frederick County, MD, County Council District Two"
+  title: "Frederick County, MD, County Council District Three"
   navbar:
     left:
       - href: index.qmd
